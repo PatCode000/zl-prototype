@@ -1,0 +1,12 @@
+{
+  "name": "mock-render-node",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch mock-render-node.js",
+    "start": "node mock-render-node.js"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}
