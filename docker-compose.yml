@@ -3,7 +3,7 @@ services:
     image: mongo:7
     container_name: render-mongo
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:27017"
     volumes:
       - mongo_data:/data/db
 
@@ -11,30 +11,30 @@ services:
     build: ./services/api
     container_name: render-api
     environment:
-      MONGO_URL: mongodb://mongo:27017
-      MONGO_DB: render_platform
+      MONGO_URL: ${MONGO_URL}
+      MONGO_DB: ${MONGO_DB}
     depends_on:
       - mongo
     ports:
-      - "8000:8000"
+      - "${API_PORT}:8000"
 
   gateway:
     build: ./services/gateway
     container_name: render-gateway
     environment:
-      API_URL: http://api:8000
-      PORT: 8080
+      API_URL: ${API_URL}
+      PORT: ${GATEWAY_PORT}
     depends_on:
       - api
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT}:8080"
 
   mock-render-node:
     build: ./services/mock-render-node
     container_name: mock-render-node
     environment:
-      GATEWAY_URL: http://gateway:8080
-      NODE_ID: mock-macos-render-node
+      GATEWAY_URL: ${GATEWAY_URL}
+      NODE_ID: ${NODE_ID}
     depends_on:
       - gateway
 
@@ -42,13 +42,13 @@ services:
     build: ./apps/frontend
     container_name: render-frontend
     environment:
-      VITE_API_URL: http://localhost:8000
-      VITE_GATEWAY_URL: http://localhost:8080
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_GATEWAY_URL: ${VITE_GATEWAY_URL}
     depends_on:
       - api
       - gateway
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT}:5173"
 
 volumes:
   mongo_data:
