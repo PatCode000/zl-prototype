@@ -43,6 +43,17 @@ build
 *.app
 *.xcworkspace
 
+# Unity renderer accidental in-project Linux player output
+/services/unity-renderer/builds/
+/services/unity-renderer/*.x86_64
+/services/unity-renderer/*.so
+/services/unity-renderer/*.so.*
+/services/unity-renderer/*_Data/
+/services/unity-renderer/*_BurstDebugInformation_DoNotShip/
+
+# Unity Render Streaming local checkout
+/services/unity-renderer/render-streaming-webapp/
+
 # IDE/editor state
 .vs/
 .idea/
