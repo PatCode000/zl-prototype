@@ -50,69 +50,6 @@ docs/ws-protocol.md            Socket.IO protocol contract
 
 ---
 
-## Run locally with Docker Compose
-
-From the repo root:
-
-```bash
-docker compose up --build
-```
-
-Open:
-
-- Frontend: http://localhost:5173
-- API health: http://localhost:8000/health
-- Gateway health: http://localhost:8080/health
-- API dashboard: http://localhost:8000/dashboard
-
-Click **Start render session**. You should see generated frames in the browser. Change paint, wheels, environment and animation. Then click **Refresh events from MongoDB**.
-
----
-
-## Run services manually
-
-MongoDB:
-
-```bash
-docker run --rm -p 27017:27017 --name render-mongo mongo:7
-```
-
-FastAPI:
-
-```bash
-cd services/api
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-MONGO_URL=mongodb://localhost:27017 uvicorn app.main:app --reload --port 8000
-```
-
-Gateway:
-
-```bash
-cd services/gateway
-npm install
-API_URL=http://localhost:8000 npm run dev
-```
-
-Mock render node:
-
-```bash
-cd services/mock-render-node
-npm install
-GATEWAY_URL=http://localhost:8080 npm run dev
-```
-
-Frontend:
-
-```bash
-cd apps/frontend
-npm install
-VITE_API_URL=http://localhost:8000 VITE_GATEWAY_URL=http://localhost:8080 npm run dev
-```
-
----
-
 ## API endpoints
 
 - `GET /health`
@@ -151,15 +88,15 @@ Key gateway-to-render-node events:
 
 ---
 
-## Kubernetes local run
+## Run on Kubernetes
 
 This assumes a local cluster such as Docker Desktop Kubernetes, Minikube or Kind.
 
 Build local images:
 
 ```bash
-docker build -t render-api:local ./services/api
-docker build -t render-gateway:local ./services/gateway
+docker build -t render-api:loadbalancer ./services/api
+docker build -t render-gateway:loadbalancer ./services/gateway
 docker build -t render-frontend:local ./apps/frontend
 ```
 
@@ -169,24 +106,29 @@ Apply manifests:
 kubectl apply -f k8s/
 ```
 
-Check pods:
+Check resources:
 
 ```bash
 kubectl get pods -n render-platform
 kubectl get svc -n render-platform
 ```
 
-For Docker Desktop Kubernetes, open:
+Open through LoadBalancer services:
 
-- Frontend: http://localhost:30517
-- API: http://localhost:30080/health
-- Gateway: http://localhost:30081/health
+- Frontend: http://localhost:5173
+- API: http://localhost:8000/health
+- Gateway: http://localhost:8080/health
 
-External Unity/macOS render node can connect to the Gateway NodePort:
+Verify from a terminal:
 
 ```bash
-GATEWAY_URL=http://localhost:30081 npm run dev
+curl http://localhost:8000/health
+open http://localhost:5173
 ```
+
+MongoDB is intentionally internal only at `mongo:27017`; it is not exposed through LoadBalancer.
+
+Click **Start render session** in the frontend. You should see generated frames in the browser. Change paint, wheels, environment and animation. Then click **Refresh events from MongoDB**.
 
 ---
 
