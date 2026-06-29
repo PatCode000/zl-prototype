@@ -16,7 +16,7 @@ spec:
       containers:
         - name: gateway
           image: render-gateway:local
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:

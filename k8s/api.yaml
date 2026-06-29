@@ -16,7 +16,7 @@ spec:
       containers:
         - name: api
           image: render-api:local
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:
