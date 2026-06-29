@@ -8,3 +8,42 @@ __pycache__
 dist
 build
 *.log
+
+# Unity generated files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Unity generated project files
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity crash and profiling output
+[Ss]ys[Ii]nfo.txt
+*.stackdump
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.xcworkspace
+
+# IDE/editor state
+.vs/
+.idea/
+*.swp
