@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: render-api:local
+          image: render-api:loadbalancer
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -24,6 +24,8 @@ spec:
               value: mongodb://mongo:27017
             - name: MONGO_DB
               value: render_platform
+            - name: ALLOWED_ORIGINS
+              value: http://localhost:5173
 ---
 apiVersion: v1
 kind: Service
@@ -36,5 +38,4 @@ spec:
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30080
-  type: NodePort
+  type: LoadBalancer

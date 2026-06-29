@@ -6,14 +6,18 @@ import { Server } from "socket.io";
 
 const PORT = process.env.PORT || 8080;
 const API_URL = process.env.API_URL || "http://localhost:8000";
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: { origin: ALLOWED_ORIGINS, methods: ["GET", "POST"] },
   maxHttpBufferSize: 5e6
 });
 
