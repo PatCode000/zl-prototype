@@ -120,7 +120,7 @@ docker build -t render-frontend:local ./apps/frontend
 Builds the local Docker image for the frontend service.
 
 ```bash
-docker build -t render-unity-renderer:local ./services/unity-renderer
+docker build -t unity-renderer:local ./services/unity-renderer
 ```
 
 Builds the local Docker image for the Unity renderer. The Unity Linux player artifacts must already exist in `services/unity-renderer/builds`.
@@ -146,6 +146,12 @@ grep -R "imagePullPolicy" k8s/
 ```
 
 Shows the image pull policy used by the manifests.
+
+```bash
+grep -R "SIGNALING_URL" k8s/ docker-compose.yml .env.example
+```
+
+Confirms that the Unity renderer connects outbound to the Gateway through `ws://gateway:8080`.
 
 ---
 
@@ -263,12 +269,38 @@ Finds where the gateway error message is defined in the codebase.
 
 
 
-//////////////////////////
+## Kubernetes
 
 check pods in cluster
 
+```bash
 kubectl -n render-platform get pods
+```
 
 apply manifest
 
+```bash
 kubectl apply -f k8s/
+```
+
+Removes specific pod
+
+kubectl -n render-platform delete pod <pod-name>
+
+kubectl delete namespace render-platform
+
+
+Rebuild images:
+```bash
+docker build -t render-api:loadbalancer ./services/api
+docker build -t render-gateway:loadbalancer ./services/gateway
+docker build -t render-frontend:local ./apps/frontend
+docker build -t unity-renderer:local ./services/unity-renderer
+```
+
+```bash
+kubectl -n render-platform rollout restart deployment/api
+kubectl -n render-platform rollout restart deployment/gateway
+kubectl -n render-platform rollout restart deployment/frontend
+kubectl -n render-platform rollout restart deployment/unity-renderer
+```

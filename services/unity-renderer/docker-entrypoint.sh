@@ -9,7 +9,28 @@ fi
 
 if [ "$#" -eq 0 ] && [ -n "${UNITY_ARGS:-}" ]; then
   set -- $UNITY_ARGS
-elif [ -n "${UNITY_EXTRA_ARGS:-}" ]; then
+fi
+
+has_arg() {
+  needle="$1"
+  shift
+
+  for arg in "$@"; do
+    case "$arg" in
+      "$needle"|"$needle"=*)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+if [ -n "${SIGNALING_URL:-}" ] && ! has_arg "-signalingUrl" "$@"; then
+  set -- "$@" "-signalingType" "${SIGNALING_TYPE:-websocket}" "-signalingUrl" "$SIGNALING_URL"
+fi
+
+if [ -n "${UNITY_EXTRA_ARGS:-}" ]; then
   set -- "$@" $UNITY_EXTRA_ARGS
 fi
 
@@ -18,4 +39,3 @@ if [ "${UNITY_USE_XVFB:-1}" = "1" ]; then
 fi
 
 exec "$UNITY_EXECUTABLE" "$@"
-

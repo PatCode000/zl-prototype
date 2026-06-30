@@ -2,15 +2,15 @@
 
 A small interview-prep prototype that simulates a cloud-rendering / 3D-streaming configurator platform.
 
-The first vertical slice intentionally avoids WebRTC. It proves the architecture first:
+The current vertical slice uses Unity Render Streaming as the media path:
 
 - Browser creates a render session through FastAPI.
-- Browser connects to Node.js Gateway over Socket.IO.
-- Unity render node registers as a generic render worker.
+- Browser connects to Node.js Gateway over Socket.IO for session/control events.
+- Unity renderer connects to the Gateway over raw WebSocket signaling.
 - Gateway assigns the browser session to the render node.
 - Browser sends configuration commands to the Gateway.
-- Gateway routes commands to the assigned render node.
-- Unity render node emits frames to the browser through the Gateway.
+- Browser and Unity exchange WebRTC offer/answer/candidate messages through the Gateway.
+- Unity Render Streaming media plays in the browser as a WebRTC video stream.
 - FastAPI stores sessions, node status, configurations and events in MongoDB.
 
 ---
@@ -25,13 +25,13 @@ Python FastAPI Render API  ---> MongoDB
   ^
   | event/config writes from Gateway
   |
-Node.js Realtime Gateway <---- Unity Render Node
-  ^        | commands                  | frames/events
-  |        v                           v
-Browser Socket.IO client <-------- frame stream
+Node.js Realtime Gateway <---- Unity Renderer
+  ^        | Socket.IO control          | raw WebSocket signaling
+  |        v                            v
+Browser Socket.IO client        Browser WebRTC video
 ```
 
-Important decision: the browser never talks directly to Unity. Unity registers itself as a render node. The Gateway routes all commands and frames based on a session assignment.
+Important decision: the Gateway remains the rendezvous point. Socket.IO is used for browser session/control events; live media stays on Unity Render Streaming WebRTC and is not converted into Socket.IO image frames.
 
 ---
 
@@ -43,7 +43,7 @@ services/api/                  Python FastAPI Render Session API
 services/gateway/              Node.js realtime Gateway
 services/unity-renderer/       Unity project and local Linux player artifacts
 k8s/                           Kubernetes manifests for backend services
-docs/ws-protocol.md            Socket.IO protocol contract
+docs/ws-protocol.md            Socket.IO control and Unity raw signaling contract
 ```
 
 ---
@@ -67,22 +67,18 @@ docs/ws-protocol.md            Socket.IO protocol contract
 
 See `docs/ws-protocol.md`.
 
-Key browser events:
+Key browser Socket.IO events:
 
 - `browser:join_session`
 - `browser:command`
 
-Key render node events:
+Key Unity Render Streaming raw WebSocket messages:
 
-- `render:register`
-- `render:heartbeat`
-- `render:frame`
-- `render:event`
-
-Key gateway-to-render-node events:
-
-- `render:attach_session`
-- `render:command`
+- `connect`
+- `disconnect`
+- `offer`
+- `answer`
+- `candidate`
 
 ---
 
@@ -96,7 +92,7 @@ Build local images:
 docker build -t render-api:loadbalancer ./services/api
 docker build -t render-gateway:loadbalancer ./services/gateway
 docker build -t render-frontend:local ./apps/frontend
-docker build -t render-unity-renderer:local ./services/unity-renderer
+docker build -t unity-renderer:local ./services/unity-renderer
 ```
 
 The Unity image expects Linux player artifacts in:
@@ -108,7 +104,9 @@ services/unity-renderer/builds/
   unity-build_Data/
 ```
 
-`builds/` is intentionally treated as local/generated output. Rebuild or copy Unity player artifacts there before building `render-unity-renderer:local`.
+`builds/` is intentionally treated as local/generated output. Rebuild or copy Unity player artifacts there before building `unity-renderer:local`.
+
+In Kubernetes the Unity renderer runs as the `unity-renderer` deployment and connects outbound to the Gateway with `SIGNALING_URL=ws://gateway:8080`. It does not need a Kubernetes Service unless the renderer later exposes an inbound API.
 
 Apply manifests:
 
@@ -138,20 +136,15 @@ open http://localhost:5173
 
 MongoDB is intentionally internal only at `mongo:27017`; it is not exposed through LoadBalancer.
 
-Click **Start render session** in the frontend. You should see generated frames in the browser. Change paint, wheels, environment and animation. Then click **Refresh events from MongoDB**.
+Click **Start render session** in the frontend. You should see the Unity Render Streaming WebRTC video in the browser. Change paint, wheels, environment and animation to persist command/configuration events. Then click **Refresh events from MongoDB**.
 
-The Unity build implements the render-node contract:
+The Unity build implements the Unity Render Streaming contract:
 
-1. Connect to Gateway.
-2. Emit `render:register` with node id and capabilities.
-3. Emit `render:heartbeat` every few seconds.
-4. Listen for `render:attach_session`.
-5. Listen for `render:command`.
-6. Apply paint/wheels/camera/environment/animation changes in the Unity scene.
-7. Emit `render:frame` for MVP frame streaming.
-8. Emit `render:event` when commands are applied or errors happen.
+1. Connect to the Gateway raw WebSocket signaling endpoint.
+2. Exchange `connect`, `disconnect`, `offer`, `answer`, and `candidate` messages.
+3. Send Unity Render Streaming WebRTC media to the browser.
 
-For the MVP Unity bridge, keep the command protocol simple and stable. Do not bind the browser to Unity-specific message names.
+For the MVP Unity bridge, keep browser command names stable and do not convert WebRTC media into Socket.IO frames.
 
 ---
 
@@ -161,22 +154,22 @@ The prototype separates three planes:
 
 ### Control plane
 
-Browser commands go to Gateway, then to the assigned render node. Render nodes are registered workers, not hardcoded local processes.
+Browser commands go to Gateway/API for session control, event persistence and configuration updates. Unity renderer availability is registered from its raw WebSocket signaling connection.
 
 ### Media plane
 
-MVP uses frame streaming over Socket.IO. Later this can move to WebRTC or a dedicated streaming service without changing the Render Session API.
+Unity Render Streaming uses raw WebSocket signaling through the Gateway and WebRTC media directly in the browser video element.
 
 ### Data plane
 
 FastAPI and MongoDB store session metadata, current configuration, node status and event history.
 
-### Migration from external macOS Unity node to GPU workers
+### Migration from containerized Unity renderer to GPU workers
 
 Current:
 
 ```text
-Kubernetes backend + external macOS Unity render node
+Kubernetes backend + Unity renderer deployment
 ```
 
 Later:
@@ -200,12 +193,12 @@ The browser does not need to know which worker type is assigned.
 
 1. Start the backend stack.
 2. Show MongoDB, FastAPI and Gateway health checks.
-3. Start the render node and show it registering with the Gateway.
+3. Start the Unity renderer deployment and show it registering with the Gateway.
 4. Open the React configurator.
 5. Start a render session.
 6. Explain session assignment: Browser -> Gateway -> render node.
 7. Change paint/wheels/environment/camera.
-8. Show the frame stream updating.
+8. Show the Unity WebRTC video stream playing.
 9. Refresh events and show commands stored in MongoDB.
 10. Show `docs/ws-protocol.md` and explain how Unity stays behind the generic render-node contract.
-11. Explain production migration: external node today, GPU-backed workers later.
+11. Explain production migration: containerized Unity renderer today, GPU-backed workers later.

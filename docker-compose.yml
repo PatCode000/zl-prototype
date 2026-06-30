@@ -33,6 +33,7 @@ services:
     build: ./services/unity-renderer
     container_name: unity-renderer
     environment:
+      SIGNALING_URL: ${SIGNALING_URL}
       UNITY_USE_XVFB: "1"
       XVFB_SCREEN: "1280x720x24"
     depends_on:

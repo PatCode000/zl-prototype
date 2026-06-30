@@ -17,16 +17,11 @@ spec:
     spec:
       containers:
         - name: unity-renderer
-          image: render-unity-renderer:local
-          imagePullPolicy: IfNotPresent
-          args:
-            - "-logFile"
-            - "-"
-            - "-signalingType"
-            - "websocket"
-            - "-signalingUrl"
-            - "ws://gateway:8080"
+          image: unity-renderer:local
+          imagePullPolicy: Never
           env:
+            - name: SIGNALING_URL
+              value: ws://gateway:8080
             - name: UNITY_USE_XVFB
               value: "1"
             - name: XVFB_SCREEN

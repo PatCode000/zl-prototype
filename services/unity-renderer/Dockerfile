@@ -40,8 +40,9 @@ RUN chmod +x /usr/local/bin/unity-renderer-entrypoint \
 ENV UNITY_EXECUTABLE=/opt/unity-renderer/builds/unity-build.x86_64 \
     UNITY_USE_XVFB=1 \
     XVFB_SCREEN=1280x720x24 \
+    SIGNALING_URL=ws://gateway:8080 \
+    SIGNALING_TYPE=websocket \
     LD_LIBRARY_PATH=/opt/unity-renderer/builds
 
 ENTRYPOINT ["/usr/local/bin/unity-renderer-entrypoint"]
-CMD ["-logFile", "-", "-signalingType", "websocket", "-signalingUrl", "ws://gateway:8080"]
-
+CMD ["-logFile", "-"]
