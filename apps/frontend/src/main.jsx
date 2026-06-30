@@ -79,7 +79,7 @@ function App() {
         <div>
           <p className="eyebrow">ZeroLight-inspired Prototype</p>
           <h1>Cloud Rendering / 3D Streaming Configurator</h1>
-          <p className="muted">Browser → Gateway/API → Render Node. Unity will replace the mock node later.</p>
+          <p className="muted">Browser → Gateway/API → Unity render node.</p>
         </div>
         <button onClick={startSession} disabled={Boolean(session)}>Start render session</button>
       </header>
@@ -87,7 +87,7 @@ function App() {
       <section className="grid">
         <div className="card stream">
           <h2>Live Stream Preview</h2>
-          {frame ? <img src={frame} alt="mock render stream" /> : <div className="placeholder">No frame yet. Start the stack and render session.</div>}
+          {frame ? <img src={frame} alt="Unity render stream" /> : <div className="placeholder">No frame yet. Start the stack and render session.</div>}
           <p className="muted">{status}</p>
           {session && <code>session_id: {session.session_id}</code>}
         </div>

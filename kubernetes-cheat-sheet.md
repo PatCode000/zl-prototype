@@ -60,10 +60,10 @@ Applies all Kubernetes manifests from the `k8s` directory.
 Creates new resources or updates existing ones.
 
 ```bash
-kubectl apply -f k8s/mock-render-node.yaml
+kubectl apply -f k8s/unity-renderer.yaml
 ```
 
-Applies only the `mock-render-node` manifest.
+Applies only the `unity-renderer` manifest.
 
 ---
 
@@ -118,12 +118,6 @@ docker build -t render-frontend:local ./apps/frontend
 ```
 
 Builds the local Docker image for the frontend service.
-
-```bash
-docker build -t render-mock-render-node:local ./services/mock-render-node
-```
-
-Builds the local Docker image for the mock render node.
 
 ```bash
 docker build -t render-unity-renderer:local ./services/unity-renderer
@@ -204,12 +198,6 @@ kubectl -n render-platform logs deployment/gateway
 Shows gateway logs.
 
 ```bash
-kubectl -n render-platform logs deployment/mock-render-node
-```
-
-Shows mock render node logs.
-
-```bash
 kubectl -n render-platform logs deployment/unity-renderer
 ```
 
@@ -243,12 +231,6 @@ kubectl -n render-platform rollout restart deployment/gateway
 
 Restarts the gateway deployment.
 
-```bash
-kubectl -n render-platform rollout restart deployment/mock-render-node
-```
-
-Restarts the mock render node deployment.
-
 ---
 
 ## Useful project checks
@@ -266,13 +248,27 @@ find . -maxdepth 4 -name "Dockerfile"
 Finds Dockerfiles in the project.
 
 ```bash
-grep -R "process.env" services/mock-render-node
+grep -R "UNITY_" services/unity-renderer
 ```
 
-Shows environment variables used by the mock render node.
+Shows Unity renderer environment variables used by the container entrypoint.
 
 ```bash
 grep -R "No render node is registered" .
 ```
 
 Finds where the gateway error message is defined in the codebase.
+
+
+
+
+
+//////////////////////////
+
+check pods in cluster
+
+kubectl -n render-platform get pods
+
+apply manifest
+
+kubectl apply -f k8s/

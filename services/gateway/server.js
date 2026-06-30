@@ -71,14 +71,14 @@ io.on("connection", (socket) => {
     renderNodes.set(nodeId, {
       socketId: socket.id,
       status: "available",
-      kind: msg.kind || "mock",
+      kind: msg.kind || "unity-renderer",
       capabilities: msg.capabilities || [],
       lastSeenAt: new Date().toISOString()
     });
 
     console.log(`[render] registered ${nodeId}`);
     socket.emit("render:registered", { nodeId });
-    await apiPost("/nodes/register", { node_id: nodeId, kind: msg.kind || "mock", capabilities: msg.capabilities || [] });
+    await apiPost("/nodes/register", { node_id: nodeId, kind: msg.kind || "unity-renderer", capabilities: msg.capabilities || [] });
   });
 
   socket.on("render:heartbeat", async (msg = {}) => {
@@ -104,7 +104,7 @@ io.on("connection", (socket) => {
     if (!nodeId) {
       const chosen = chooseAvailableNode();
       if (!chosen) {
-        socket.emit("gateway:error", { message: "No render node is registered. Start mock-render-node or Unity render node." });
+        socket.emit("gateway:error", { message: "No render node is registered. Start the Unity render node." });
         return;
       }
       nodeId = chosen.nodeId;

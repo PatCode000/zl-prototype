@@ -6,14 +6,12 @@ The first vertical slice intentionally avoids WebRTC. It proves the architecture
 
 - Browser creates a render session through FastAPI.
 - Browser connects to Node.js Gateway over Socket.IO.
-- Mock render node registers as a generic render worker.
+- Unity render node registers as a generic render worker.
 - Gateway assigns the browser session to the render node.
 - Browser sends configuration commands to the Gateway.
 - Gateway routes commands to the assigned render node.
-- Mock render node emits SVG frames as a fake live stream.
+- Unity render node emits frames to the browser through the Gateway.
 - FastAPI stores sessions, node status, configurations and events in MongoDB.
-
-Later, the mock render node is replaced by a Unity macOS build using the same protocol.
 
 ---
 
@@ -27,7 +25,7 @@ Python FastAPI Render API  ---> MongoDB
   ^
   | event/config writes from Gateway
   |
-Node.js Realtime Gateway <---- Unity or Mock Render Node
+Node.js Realtime Gateway <---- Unity Render Node
   ^        | commands                  | frames/events
   |        v                           v
 Browser Socket.IO client <-------- frame stream
@@ -43,7 +41,6 @@ Important decision: the browser never talks directly to Unity. Unity registers i
 apps/frontend/                 React configurator UI
 services/api/                  Python FastAPI Render Session API
 services/gateway/              Node.js realtime Gateway
-services/mock-render-node/     Mock Unity-like render worker
 services/unity-renderer/       Unity project and local Linux player artifacts
 k8s/                           Kubernetes manifests for backend services
 docs/ws-protocol.md            Socket.IO protocol contract
@@ -99,7 +96,6 @@ Build local images:
 docker build -t render-api:loadbalancer ./services/api
 docker build -t render-gateway:loadbalancer ./services/gateway
 docker build -t render-frontend:local ./apps/frontend
-docker build -t render-mock-render-node:local ./services/mock-render-node
 docker build -t render-unity-renderer:local ./services/unity-renderer
 ```
 
@@ -144,17 +140,7 @@ MongoDB is intentionally internal only at `mongo:27017`; it is not exposed throu
 
 Click **Start render session** in the frontend. You should see generated frames in the browser. Change paint, wheels, environment and animation. Then click **Refresh events from MongoDB**.
 
-The Kubernetes stack includes both `mock-render-node` and `unity-renderer` workers. To run only the Unity worker, scale the mock worker down:
-
-```bash
-kubectl -n render-platform scale deployment/mock-render-node --replicas=0
-```
-
----
-
-## Next step: replace mock render node with Unity
-
-The Unity build should implement the same contract:
+The Unity build implements the render-node contract:
 
 1. Connect to Gateway.
 2. Emit `render:register` with node id and capabilities.
@@ -221,5 +207,5 @@ The browser does not need to know which worker type is assigned.
 7. Change paint/wheels/environment/camera.
 8. Show the frame stream updating.
 9. Refresh events and show commands stored in MongoDB.
-10. Show `docs/ws-protocol.md` and explain how Unity can replace the mock.
+10. Show `docs/ws-protocol.md` and explain how Unity stays behind the generic render-node contract.
 11. Explain production migration: external node today, GPU-backed workers later.

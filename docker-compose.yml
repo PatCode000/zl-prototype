@@ -29,12 +29,12 @@ services:
     ports:
       - "${GATEWAY_PORT}:8080"
 
-  mock-render-node:
-    build: ./services/mock-render-node
-    container_name: mock-render-node
+  unity-renderer:
+    build: ./services/unity-renderer
+    container_name: unity-renderer
     environment:
-      GATEWAY_URL: ${GATEWAY_URL}
-      NODE_ID: ${NODE_ID}
+      UNITY_USE_XVFB: "1"
+      XVFB_SCREEN: "1280x720x24"
     depends_on:
       - gateway
 

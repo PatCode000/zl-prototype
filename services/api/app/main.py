@@ -45,7 +45,7 @@ class AssignSessionRequest(BaseModel):
 
 class RegisterNodeRequest(BaseModel):
     node_id: str
-    kind: str = "mock"
+    kind: str = "unity-renderer"
     capabilities: list[str] = Field(default_factory=list)
     status: str = "available"
 

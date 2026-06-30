@@ -5,15 +5,15 @@
 ### render:register
 ```json
 {
-  "nodeId": "mock-macos-render-node",
-  "kind": "mock-svg-renderer",
+  "nodeId": "unity-renderer-01",
+  "kind": "unity-renderer",
   "capabilities": ["frame-stream", "command-routing"]
 }
 ```
 
 ### render:heartbeat
 ```json
-{ "nodeId": "mock-macos-render-node", "status": "available" }
+{ "nodeId": "unity-renderer-01", "status": "available" }
 ```
 
 ### render:frame
