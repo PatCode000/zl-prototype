@@ -44,6 +44,7 @@ apps/frontend/                 React configurator UI
 services/api/                  Python FastAPI Render Session API
 services/gateway/              Node.js realtime Gateway
 services/mock-render-node/     Mock Unity-like render worker
+services/unity-renderer/       Unity project and local Linux player artifacts
 k8s/                           Kubernetes manifests for backend services
 docs/ws-protocol.md            Socket.IO protocol contract
 ```
@@ -98,7 +99,20 @@ Build local images:
 docker build -t render-api:loadbalancer ./services/api
 docker build -t render-gateway:loadbalancer ./services/gateway
 docker build -t render-frontend:local ./apps/frontend
+docker build -t render-mock-render-node:local ./services/mock-render-node
+docker build -t render-unity-renderer:local ./services/unity-renderer
 ```
+
+The Unity image expects Linux player artifacts in:
+
+```text
+services/unity-renderer/builds/
+  unity-build.x86_64
+  UnityPlayer.so
+  unity-build_Data/
+```
+
+`builds/` is intentionally treated as local/generated output. Rebuild or copy Unity player artifacts there before building `render-unity-renderer:local`.
 
 Apply manifests:
 
@@ -129,6 +143,12 @@ open http://localhost:5173
 MongoDB is intentionally internal only at `mongo:27017`; it is not exposed through LoadBalancer.
 
 Click **Start render session** in the frontend. You should see generated frames in the browser. Change paint, wheels, environment and animation. Then click **Refresh events from MongoDB**.
+
+The Kubernetes stack includes both `mock-render-node` and `unity-renderer` workers. To run only the Unity worker, scale the mock worker down:
+
+```bash
+kubectl -n render-platform scale deployment/mock-render-node --replicas=0
+```
 
 ---
 

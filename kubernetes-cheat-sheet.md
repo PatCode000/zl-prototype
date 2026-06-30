@@ -126,6 +126,12 @@ docker build -t render-mock-render-node:local ./services/mock-render-node
 Builds the local Docker image for the mock render node.
 
 ```bash
+docker build -t render-unity-renderer:local ./services/unity-renderer
+```
+
+Builds the local Docker image for the Unity renderer. The Unity Linux player artifacts must already exist in `services/unity-renderer/builds`.
+
+```bash
 docker images | grep render
 ```
 
@@ -203,6 +209,12 @@ kubectl -n render-platform logs deployment/mock-render-node
 
 Shows mock render node logs.
 
+```bash
+kubectl -n render-platform logs deployment/unity-renderer
+```
+
+Shows Unity renderer logs.
+
 ---
 
 ## Restart deployments
@@ -218,6 +230,12 @@ kubectl -n render-platform rollout restart deployment/frontend
 ```
 
 Restarts the frontend deployment.
+
+```bash
+kubectl -n render-platform rollout restart deployment/unity-renderer
+```
+
+Restarts the Unity renderer deployment.
 
 ```bash
 kubectl -n render-platform rollout restart deployment/gateway

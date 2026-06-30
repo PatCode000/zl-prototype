@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unity-renderer
+  namespace: render-platform
+  labels:
+    app: unity-renderer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unity-renderer
+  template:
+    metadata:
+      labels:
+        app: unity-renderer
+    spec:
+      containers:
+        - name: unity-renderer
+          image: render-unity-renderer:local
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-logFile"
+            - "-"
+            - "-signalingType"
+            - "websocket"
+            - "-signalingUrl"
+            - "ws://gateway:8080"
+          env:
+            - name: UNITY_USE_XVFB
+              value: "1"
+            - name: XVFB_SCREEN
+              value: "1280x720x24"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 768Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
